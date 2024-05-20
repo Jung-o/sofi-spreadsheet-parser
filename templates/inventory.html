@@ -7,6 +7,12 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
     <!-- Include DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+    <style>
+        .container{
+            width: 90%;
+            max-width: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -16,6 +22,7 @@
                     {% for columName in columnsNames %}
                     <th>{{ columName }}</th>
                     {% endfor %}
+                    <th>Filtered results</th>
                 </tr>
             </thead>
             <tbody>
@@ -24,6 +31,10 @@
                         {% for field in card %}
                             <td>{{ field }}</td>
                         {% endfor %}
+                        <td>
+                            <button id="Add{{ card.0 }}" class="btn btn-success addFilter">Add</button>
+                            <button id="Rm{{ card.0 }}" class="btn btn-danger rmFilter">Remove</button>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -46,7 +57,7 @@
         <h5>Filtering results:</h5>
         <textarea id="cardCodes" rows="4" cols="50"></textarea>
         <br>
-        <button id="copyButton" class="btn btn-success">Copy to Clipboard</button>
+        <button id="copyButton" class="btn btn-primary">Copy to Clipboard</button>
     </div>
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -120,16 +131,34 @@
         });
 
         $('.getCards').click(function() {
-            // After appending the ids to the textarea, remove duplicates
-            var ids = $('#cardCodes').val().split(' ');
-            var uniqueIds = [...new Set(ids)];
-            $('#cardCodes').val(uniqueIds.join(' '));
+            removeDuplicatesFilterResult()
+        });
+
+        $('.addFilter').click(function() {
+            const cardCode = $(this).attr('id').substring(4);
+            const current_filter_result = $('#cardCodes').val();
+            $('#cardCodes').val(current_filter_result + cardCode + ' ');
+            removeDuplicatesFilterResult();
+        });
+
+        $('.rmFilter').click(function() {
+            const cardCode = $(this).attr('id').substring(3);
+            const current_filter_result = $('#cardCodes').val();
+            const cardCodes = current_filter_result.split(' ');
+            const newCardCodes = cardCodes.filter(code => code !== cardCode);
+            $('#cardCodes').val(newCardCodes.join(' '));
         });
     });
 
     function getFieldIndex(columnName) {
         const columns = {{ columnsNames|safe }};
         return columns.indexOf(columnName);
+    }
+
+    function removeDuplicatesFilterResult() {
+        var ids = $('#cardCodes').val().split(' ');
+        var uniqueIds = [...new Set(ids)];
+        $('#cardCodes').val(uniqueIds.join(' '));
     }
     </script>
 </body>
