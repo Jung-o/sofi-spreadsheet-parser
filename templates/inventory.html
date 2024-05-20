@@ -54,10 +54,12 @@
     <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
     <script>
     $(document).ready(function() {
-        const indexLastColumn = $("#inventoryTable").find('tr')[0].cells.length-1;
+        const codeIndex = getFieldIndex('Code');
+        const sumStatsIndex = getFieldIndex('Sum of stats');
 
+        console.log(sumStatsIndex)
         $('#inventoryTable').DataTable({
-            "order":[[indexLastColumn,'desc']]
+            "order":[[sumStatsIndex,'desc']]
         });
 
         $('#getSumStatsCards').click(function() {
@@ -84,8 +86,7 @@
             for (var i = 0; i < cards.length; i++) {
                 const wishlist = parseInt(cards[i][wishlist_index]);
                 if (wishlist > wishlist_limit) {
-                    console.log(cards[i]);
-                    card_ids += cards[i][0] + ' ';
+                    card_ids += cards[i][codeIndex] + ' ';
                 }
             }
             const current_filter_result = $('#cardCodes').val();
@@ -100,8 +101,7 @@
             for (var i = 0; i < cards.length; i++) {
                 const gen = parseInt(cards[i][gen_index]);
                 if (gen < gen_limit) {
-                    console.log(cards[i]);
-                    card_ids += cards[i][0] + ' ';
+                    card_ids += cards[i][codeIndex] + ' ';
                 }
             }
             const current_filter_result = $('#cardCodes').val();
