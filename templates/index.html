@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sofi Collection Helper</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+</head>
+<body>
+    <form action="/inventory" method="post" enctype="multipart/form-data">
+        <input type="file" name="datafile">
+        <br>
+        {% for key, value in columns.items() %}
+            <label>
+                <input type="checkbox" class="fieldCheckBoxes" name="checkboxes" value="{{ key }}">
+            </label>{{ value }}<br>
+        {% endfor %}
+        <input type="submit">
+    </form>
+</body>
+</html>
