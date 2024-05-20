@@ -42,32 +42,35 @@
         <br>
         <button id="resetFilters" class="btn btn-danger">Reset filter result</button>
         <br>
-        <h5>Get all cards with sum of stats
+        <h5>Cards with sum of stats
             <select id="selectStats" class="form-select">
                 <option value="lower">lower</option>
                 <option value="higher">higher</option>
             </select>
             than:</h5>
         <input type="number" id="statsAmount" placeholder="Enter stats amount" value="450">
-        <button id="getSumStatsCards" class="getCards btn btn-secondary">Get Cards</button>
+        <button id="addSumStatsCards" class="getCards btn btn-success">Add</button>
+        <button id="rmSumStatsCards" class="getCards btn btn-danger">Remove</button>
         <br><br>
-        <h5>Get all cards with wishlist
+        <h5>Cards with wishlist
             <select id="selectWl" class="form-select">
                 <option value="lower">lower</option>
                 <option value="higher">higher</option>
             </select>
             than:</h5>
         <input type="number" id="wishlistAmount" placeholder="Enter wishlist amount" value="100">
-        <button id="getWishlistCards" class="getCards btn btn-secondary">Get Cards</button>
+        <button id="addWishlistCards" class="getCards btn btn-success">Add</button>
+        <button id="rmWishlistCards" class="getCards btn btn-danger">Remove</button>
         <br><br>
-        <h5>Get all cards with Gen
+        <h5>Cards with Gen
             <select id="selectGen" class="form-select">
                 <option value="lower">lower</option>
                 <option value="higher">higher</option>
             </select>
             than:</h5>
         <input type="number" id="genAmount" placeholder="Enter gen amount" value="100">
-        <button id="getGenCards" class="getCards btn btn-secondary">Get Cards</button>
+        <button id="addGenCards" class="getCards btn btn-success">Add</button>
+        <button id="rmGenCards" class="getCards btn btn-danger">Remove</button>
         <br>
         <h5>Filtering results:</h5>
         <textarea id="cardCodes" rows="4" cols="50"></textarea>
@@ -86,18 +89,17 @@
         const codeIndex = getFieldIndex('Code');
         const sumStatsIndex = getFieldIndex('Sum of stats');
 
-        var table = $('#inventoryTable').DataTable({
-            "order":[[sumStatsIndex,'desc']]
+        const table = $('#inventoryTable').DataTable({
+            "order": [[sumStatsIndex, 'desc']]
         });
 
-        $('#getSumStatsCards').click(function() {
+        $('#addSumStatsCards').click(function() {
             const cards = {{ data|safe }};
-            const amount_fields = cards[0].length;
             const stats_limit = parseInt($('#statsAmount').val());
             let card_ids = '';
             const compareLower = $('#selectStats').val() === 'lower';
             for (var i = 0; i < cards.length; i++) {
-                const sum_stats = parseInt(cards[i][amount_fields - 1]);
+                const sum_stats = parseInt(cards[i][sumStatsIndex]);
                 if (compareLower && sum_stats < stats_limit) {
                     card_ids += cards[i][0] + ' ';
                 } else if (!compareLower && sum_stats > stats_limit) {
@@ -109,7 +111,7 @@
             $('#cardCodes').val(newCardCodes);
         });
 
-        $('#getWishlistCards').click(function() {
+        $('#addWishlistCards').click(function() {
             const cards = {{ data|safe }};
             const wishlist_index = getFieldIndex('Wishlist');
             const wishlist_limit = parseInt($('#wishlistAmount').val());
@@ -128,7 +130,7 @@
             $('#cardCodes').val(newCardCodes);
         });
 
-        $('#getGenCards').click(function() {
+        $('#addGenCards').click(function() {
             const cards = {{ data|safe }};
             const gen_index = getFieldIndex('Gen');
             const gen_limit = parseInt($('#genAmount').val());
@@ -145,6 +147,77 @@
             const current_filter_result = $('#cardCodes').val();
             const newCardCodes = current_filter_result + card_ids;
             $('#cardCodes').val(newCardCodes);
+        });
+
+        $('#rmSumStatsCards').click(function() {
+            const cards = {{ data|safe }};
+            const stats_limit = parseInt($('#statsAmount').val());
+            const current_filter_result = $('#cardCodes').val();
+            let cardCodes = current_filter_result.split(' ');
+            const compareLower = $('#selectStats').val() === 'lower';
+
+            for (var i = 0; i < cards.length; i++) {
+                const sum_stats = parseInt(cards[i][sumStatsIndex]);
+                const cardIndexInFilter = cardCodes.indexOf(cards[i][0]);
+                if (cardIndexInFilter > -1){
+                    if (compareLower && sum_stats < stats_limit) {
+                        cardCodes.splice(cardIndexInFilter, 1);
+                    } else if (!compareLower && sum_stats > stats_limit) {
+                        cardCodes.splice(cardIndexInFilter, 1);
+                    }
+                }
+            }
+            const newCardCodes = cardCodes.join(' ');
+            $('#cardCodes').val(newCardCodes);
+            $('#amountCardsFiltered').text('Amount of card filtered: ' + (newCardCodes.length-1));
+        });
+
+        $('#rmWishlistCards').click(function() {
+            const cards = {{ data|safe }};
+            const wishlist_index = getFieldIndex('Wishlist');
+            const wishlist_limit = parseInt($('#wishlistAmount').val());
+            const current_filter_result = $('#cardCodes').val();
+            let cardCodes = current_filter_result.split(' ');
+            const compareLower = $('#selectWl').val() === 'lower';
+
+            for (var i = 0; i < cards.length; i++) {
+                const wlAmount = parseInt(cards[i][wishlist_index]);
+                const cardIndexInFilter = cardCodes.indexOf(cards[i][0]);
+                if (cardIndexInFilter > -1){
+                    if (compareLower && wlAmount < wishlist_limit) {
+                        cardCodes.splice(cardIndexInFilter, 1);
+                    } else if (!compareLower && wlAmount > wishlist_limit) {
+                        cardCodes.splice(cardIndexInFilter, 1);
+                    }
+                }
+            }
+            const newCardCodes = cardCodes.join(' ');
+            $('#cardCodes').val(newCardCodes);
+            $('#amountCardsFiltered').text('Amount of card filtered: ' + (newCardCodes.length-1));
+        });
+
+        $('#rmGenCards').click(function() {
+            const cards = {{ data|safe }};
+            const gen_index = getFieldIndex('Gen');
+            const gen_limit = parseInt($('#genAmount').val());
+            const current_filter_result = $('#cardCodes').val();
+            let cardCodes = current_filter_result.split(' ');
+            const compareLower = $('#selectGen').val() === 'lower';
+
+            for (var i = 0; i < cards.length; i++) {
+                const gen = parseInt(cards[i][gen_index]);
+                const cardIndexInFilter = cardCodes.indexOf(cards[i][0]);
+                if (cardIndexInFilter > -1){
+                    if (compareLower && gen < gen_limit) {
+                        cardCodes.splice(cardIndexInFilter, 1);
+                    } else if (!compareLower && gen > gen_limit) {
+                        cardCodes.splice(cardIndexInFilter, 1);
+                    }
+                }
+            }
+            const newCardCodes = cardCodes.join(' ');
+            $('#cardCodes').val(newCardCodes);
+            $('#amountCardsFiltered').text('Amount of card filtered: ' + (newCardCodes.length-1));
         });
 
         $('#copyButton').click(function() {
