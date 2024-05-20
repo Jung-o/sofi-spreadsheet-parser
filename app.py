@@ -9,22 +9,18 @@ app = Flask(__name__)
 def hello_world():
     with open('static/columnsNames.json', 'r') as f:
         columns = json.load(f)
+    del columns['code']
+    del columns['name']
+    del columns['wishlist']
+    del columns['gen']
     return render_template('index.html', columns=columns)
 
 
 @app.route('/inventory', methods=['POST'])
 def upload_file():
     file = request.files['datafile']
-    checkboxes = request.form.getlist('checkboxes')
-    if 'code' not in checkboxes:
-        checkboxes.append('code')
-    if 'name' not in checkboxes:
-        checkboxes.append('name')
-    if 'wishlist' not in checkboxes:
-        checkboxes.append('wishlist')
-    if 'gen' not in checkboxes:
-        checkboxes.append('gen')
-
+    checkboxes = ['code', 'name', 'wishlist', 'gen']
+    checkboxes = checkboxes + request.form.getlist('checkboxes')
     with open('static/columnsIndexes.json', 'r') as f1:
         columnsIndexes = json.load(f1)
     with open('static/columnsNames.json', 'r') as f2:
