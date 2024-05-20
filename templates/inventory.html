@@ -32,8 +32,8 @@
                             <td>{{ field }}</td>
                         {% endfor %}
                         <td>
-                            <button id="Add{{ card.0 }}" class="btn btn-success addFilter">Add</button>
-                            <button id="Rm{{ card.0 }}" class="btn btn-danger rmFilter">Remove</button>
+                            <button id="Add{{ card.0 }}" class="addFilter btn btn-success">Add</button>
+                            <button id="Rm{{ card.0 }}" class="rmFilter btn btn-danger">Remove</button>
                         </td>
                     </tr>
                 {% endfor %}
@@ -68,8 +68,7 @@
         const codeIndex = getFieldIndex('Code');
         const sumStatsIndex = getFieldIndex('Sum of stats');
 
-        console.log(sumStatsIndex)
-        $('#inventoryTable').DataTable({
+        var table = $('#inventoryTable').DataTable({
             "order":[[sumStatsIndex,'desc']]
         });
 
@@ -81,12 +80,12 @@
             for (var i = 0; i < cards.length; i++) {
                 const sum_stats = parseInt(cards[i][amount_fields - 1]);
                 if (sum_stats < stats_limit) {
-                    console.log(cards[i]);
                     card_ids += cards[i][0] + ' ';
                 }
             }
             const current_filter_result = $('#cardCodes').val();
-            $('#cardCodes').val(current_filter_result + card_ids);
+            const newCardCodes = current_filter_result + card_ids;
+            $('#cardCodes').val(newCardCodes.trim());
         });
 
         $('#getWishlistCards').click(function() {
@@ -101,7 +100,8 @@
                 }
             }
             const current_filter_result = $('#cardCodes').val();
-            $('#cardCodes').val(current_filter_result + card_ids);
+            const newCardCodes = current_filter_result + card_ids;
+            $('#cardCodes').val(newCardCodes.trim());
         });
 
         $('#getGenCards').click(function() {
@@ -116,7 +116,8 @@
                 }
             }
             const current_filter_result = $('#cardCodes').val();
-            $('#cardCodes').val(current_filter_result + card_ids);
+            const newCardCodes = current_filter_result + card_ids;
+            $('#cardCodes').val(newCardCodes.trim());
         });
 
         $('#copyButton').click(function() {
@@ -134,19 +135,23 @@
             removeDuplicatesFilterResult()
         });
 
-        $('.addFilter').click(function() {
-            const cardCode = $(this).attr('id').substring(4);
+        table.on('click', '.addFilter', function() {
+            const cardCode = $(this).attr('id').substring(3);
             const current_filter_result = $('#cardCodes').val();
-            $('#cardCodes').val(current_filter_result + cardCode + ' ');
+            const newCardCodes = current_filter_result + ' ' + cardCode;
+            $('#cardCodes').val(newCardCodes.trim());
             removeDuplicatesFilterResult();
         });
 
-        $('.rmFilter').click(function() {
-            const cardCode = $(this).attr('id').substring(3);
+        table.on('click', '.rmFilter', function() {
+            const cardCode = $(this).attr('id').substring(2);
             const current_filter_result = $('#cardCodes').val();
             const cardCodes = current_filter_result.split(' ');
-            const newCardCodes = cardCodes.filter(code => code !== cardCode);
-            $('#cardCodes').val(newCardCodes.join(' '));
+            const deletedCardIndex = cardCodes.indexOf(cardCode);
+            if (deletedCardIndex > -1) {
+                cardCodes.splice(deletedCardIndex, 1);
+            }
+            $('#cardCodes').val(cardCodes.join(' ').trim());
         });
     });
 
@@ -158,7 +163,7 @@
     function removeDuplicatesFilterResult() {
         var ids = $('#cardCodes').val().split(' ');
         var uniqueIds = [...new Set(ids)];
-        $('#cardCodes').val(uniqueIds.join(' '));
+        $('#cardCodes').val(uniqueIds.join(' ').trim());
     }
     </script>
 </body>
