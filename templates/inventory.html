@@ -42,22 +42,40 @@
         <br>
         <button id="resetFilters" class="btn btn-danger">Reset filter result</button>
         <br>
-        <h5>Get all cards with sum of stats lower than:</h5>
+        <h5>Get all cards with sum of stats
+            <select id="selectStats" class="form-select">
+                <option value="lower">lower</option>
+                <option value="higher">higher</option>
+            </select>
+            than:</h5>
         <input type="number" id="statsAmount" placeholder="Enter stats amount" value="450">
         <button id="getSumStatsCards" class="getCards btn btn-secondary">Get Cards</button>
-        <br>
-        <h5>Get all cards with wishlist higher than:</h5>
+        <br><br>
+        <h5>Get all cards with wishlist
+            <select id="selectWl" class="form-select">
+                <option value="lower">lower</option>
+                <option value="higher">higher</option>
+            </select>
+            than:</h5>
         <input type="number" id="wishlistAmount" placeholder="Enter wishlist amount" value="100">
         <button id="getWishlistCards" class="getCards btn btn-secondary">Get Cards</button>
-        <br>
-        <h5>Get all cards with Gen lower than:</h5>
+        <br><br>
+        <h5>Get all cards with Gen
+            <select id="selectGen" class="form-select">
+                <option value="lower">lower</option>
+                <option value="higher">higher</option>
+            </select>
+            than:</h5>
         <input type="number" id="genAmount" placeholder="Enter gen amount" value="100">
         <button id="getGenCards" class="getCards btn btn-secondary">Get Cards</button>
         <br>
         <h5>Filtering results:</h5>
         <textarea id="cardCodes" rows="4" cols="50"></textarea>
         <br>
-        <button id="copyButton" class="btn btn-primary">Copy to Clipboard</button>
+        <div>
+            <button id="copyButton" class="btn btn-primary">Copy to Clipboard</button>
+            <h6 id="amountCardsFiltered">Amount of card filtered: 0</h6>
+        </div>
     </div>
     <!-- Include jQuery -->
     <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -77,47 +95,56 @@
             const amount_fields = cards[0].length;
             const stats_limit = parseInt($('#statsAmount').val());
             let card_ids = '';
+            const compareLower = $('#selectStats').val() === 'lower';
             for (var i = 0; i < cards.length; i++) {
                 const sum_stats = parseInt(cards[i][amount_fields - 1]);
-                if (sum_stats < stats_limit) {
+                if (compareLower && sum_stats < stats_limit) {
+                    card_ids += cards[i][0] + ' ';
+                } else if (!compareLower && sum_stats > stats_limit) {
                     card_ids += cards[i][0] + ' ';
                 }
             }
             const current_filter_result = $('#cardCodes').val();
             const newCardCodes = current_filter_result + card_ids;
-            $('#cardCodes').val(newCardCodes.trim());
+            $('#cardCodes').val(newCardCodes);
         });
 
         $('#getWishlistCards').click(function() {
             const cards = {{ data|safe }};
             const wishlist_index = getFieldIndex('Wishlist');
             const wishlist_limit = parseInt($('#wishlistAmount').val());
+            const compareLower = $('#selectWl').val() === 'lower';
             let card_ids = '';
             for (var i = 0; i < cards.length; i++) {
                 const wishlist = parseInt(cards[i][wishlist_index]);
-                if (wishlist > wishlist_limit) {
+                if (compareLower && wishlist < wishlist_limit) {
+                    card_ids += cards[i][codeIndex] + ' ';
+                } else if (!compareLower && wishlist > wishlist_limit) {
                     card_ids += cards[i][codeIndex] + ' ';
                 }
             }
             const current_filter_result = $('#cardCodes').val();
             const newCardCodes = current_filter_result + card_ids;
-            $('#cardCodes').val(newCardCodes.trim());
+            $('#cardCodes').val(newCardCodes);
         });
 
         $('#getGenCards').click(function() {
             const cards = {{ data|safe }};
             const gen_index = getFieldIndex('Gen');
             const gen_limit = parseInt($('#genAmount').val());
+            const compareLower = $('#selectGen').val() === 'lower';
             let card_ids = '';
             for (var i = 0; i < cards.length; i++) {
                 const gen = parseInt(cards[i][gen_index]);
-                if (gen < gen_limit) {
+                if (compareLower && gen < gen_limit) {
+                    card_ids += cards[i][codeIndex] + ' ';
+                } else if (!compareLower && gen > gen_limit) {
                     card_ids += cards[i][codeIndex] + ' ';
                 }
             }
             const current_filter_result = $('#cardCodes').val();
             const newCardCodes = current_filter_result + card_ids;
-            $('#cardCodes').val(newCardCodes.trim());
+            $('#cardCodes').val(newCardCodes);
         });
 
         $('#copyButton').click(function() {
@@ -129,18 +156,23 @@
 
         $('#resetFilters').click(function() {
             $('#cardCodes').val('');
+            $('#amountCardsFiltered').text('Amount of card filtered: 0');
         });
 
         $('.getCards').click(function() {
             removeDuplicatesFilterResult()
+            const cardCodes = $('#cardCodes').val().split(' ');
+            $('#amountCardsFiltered').text('Amount of card filtered: ' + (cardCodes.length-1));
         });
 
         table.on('click', '.addFilter', function() {
             const cardCode = $(this).attr('id').substring(3);
             const current_filter_result = $('#cardCodes').val();
-            const newCardCodes = current_filter_result + ' ' + cardCode;
-            $('#cardCodes').val(newCardCodes.trim());
+            const newCardCodes = current_filter_result + cardCode + ' ';
+            $('#cardCodes').val(newCardCodes);
             removeDuplicatesFilterResult();
+            const cardCodes = $('#cardCodes').val().split(' ');
+            $('#amountCardsFiltered').text('Amount of card filtered: ' + (cardCodes.length-1));
         });
 
         table.on('click', '.rmFilter', function() {
@@ -151,8 +183,10 @@
             if (deletedCardIndex > -1) {
                 cardCodes.splice(deletedCardIndex, 1);
             }
-            $('#cardCodes').val(cardCodes.join(' ').trim());
+            $('#cardCodes').val(cardCodes.join(' '));
+            $('#amountCardsFiltered').text('Amount of card filtered: ' + (cardCodes.length-1));
         });
+
     });
 
     function getFieldIndex(columnName) {
@@ -163,7 +197,7 @@
     function removeDuplicatesFilterResult() {
         var ids = $('#cardCodes').val().split(' ');
         var uniqueIds = [...new Set(ids)];
-        $('#cardCodes').val(uniqueIds.join(' ').trim());
+        $('#cardCodes').val(uniqueIds.join(' '));
     }
     </script>
 </body>
