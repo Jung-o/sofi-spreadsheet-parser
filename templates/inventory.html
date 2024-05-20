@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sofi Parsed Collection</title>
+    <!-- Include Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.css">
+</head>
+<body>
+    <div class="container">
+        <table id="inventoryTable" class="display">
+            <thead>
+                <tr>
+                    {% for columName in columnsNames %}
+                    <th>{{ columName }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for card in data %}
+                    <tr>
+                        {% for field in card %}
+                            <td>{{ field }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <button id="resetFilters" class="btn btn-danger">Reset filter result</button>
+        <br>
+        <h5>Get all cards with sum of stats lower than:</h5>
+        <input type="number" id="statsAmount" placeholder="Enter stats amount" value="450">
+        <button id="getSumStatsCards" class="getCards btn btn-secondary">Get Cards</button>
+        <br>
+        <h5>Get all cards with wishlist higher than:</h5>
+        <input type="number" id="wishlistAmount" placeholder="Enter wishlist amount" value="100">
+        <button id="getWishlistCards" class="getCards btn btn-secondary">Get Cards</button>
+        <br>
+        <h5>Get all cards with Gen lower than:</h5>
+        <input type="number" id="genAmount" placeholder="Enter gen amount" value="100">
+        <button id="getGenCards" class="getCards btn btn-secondary">Get Cards</button>
+        <br>
+        <h5>Filtering results:</h5>
+        <textarea id="cardCodes" rows="4" cols="50"></textarea>
+        <br>
+        <button id="copyButton" class="btn btn-success">Copy to Clipboard</button>
+    </div>
+    <!-- Include jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+    <!-- Include DataTables JS -->
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+    <script>
+    $(document).ready(function() {
+        const indexLastColumn = $("#inventoryTable").find('tr')[0].cells.length-1;
+
+        $('#inventoryTable').DataTable({
+            "order":[[indexLastColumn,'desc']]
+        });
+
+        $('#getSumStatsCards').click(function() {
+            const cards = {{ data|safe }};
+            const amount_fields = cards[0].length;
+            const stats_limit = parseInt($('#statsAmount').val());
+            let card_ids = '';
+            for (var i = 0; i < cards.length; i++) {
+                const sum_stats = parseInt(cards[i][amount_fields - 1]);
+                if (sum_stats < stats_limit) {
+                    console.log(cards[i]);
+                    card_ids += cards[i][0] + ' ';
+                }
+            }
+            const current_filter_result = $('#cardCodes').val();
+            $('#cardCodes').val(current_filter_result + card_ids);
+        });
+
+        $('#getWishlistCards').click(function() {
+            const cards = {{ data|safe }};
+            const wishlist_index = getFieldIndex('Wishlist');
+            const wishlist_limit = parseInt($('#wishlistAmount').val());
+            let card_ids = '';
+            for (var i = 0; i < cards.length; i++) {
+                const wishlist = parseInt(cards[i][wishlist_index]);
+                if (wishlist > wishlist_limit) {
+                    console.log(cards[i]);
+                    card_ids += cards[i][0] + ' ';
+                }
+            }
+            const current_filter_result = $('#cardCodes').val();
+            $('#cardCodes').val(current_filter_result + card_ids);
+        });
+
+        $('#getGenCards').click(function() {
+            const cards = {{ data|safe }};
+            const gen_index = getFieldIndex('Gen');
+            const gen_limit = parseInt($('#genAmount').val());
+            let card_ids = '';
+            for (var i = 0; i < cards.length; i++) {
+                const gen = parseInt(cards[i][gen_index]);
+                if (gen < gen_limit) {
+                    console.log(cards[i]);
+                    card_ids += cards[i][0] + ' ';
+                }
+            }
+            const current_filter_result = $('#cardCodes').val();
+            $('#cardCodes').val(current_filter_result + card_ids);
+        });
+
+        $('#copyButton').click(function() {
+            var copyText = document.getElementById("cardCodes");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // For mobile devices
+            document.execCommand("copy");
+        });
+
+        $('#resetFilters').click(function() {
+            $('#cardCodes').val('');
+        });
+
+        $('.getCards').click(function() {
+            // After appending the ids to the textarea, remove duplicates
+            var ids = $('#cardCodes').val().split(' ');
+            var uniqueIds = [...new Set(ids)];
+            $('#cardCodes').val(uniqueIds.join(' '));
+        });
+    });
+
+    function getFieldIndex(columnName) {
+        const columns = {{ columnsNames|safe }};
+        return columns.indexOf(columnName);
+    }
+    </script>
+</body>
+</html>
