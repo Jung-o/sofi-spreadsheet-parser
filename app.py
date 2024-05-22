@@ -19,7 +19,8 @@ def hello_world():
 @app.route('/inventory', methods=['POST'])
 def upload_file():
     file = request.files['datafile']
-    if file.stream.read() == b'':
+    csv_read = file.stream.read()
+    if csv_read == b'':
         return redirect('/')
     checkboxes = ['code', 'name', 'wishlist', 'gen']
     checkboxes = checkboxes + request.form.getlist('checkboxes')
@@ -30,7 +31,7 @@ def upload_file():
     columns_choosed_indexes = {key: columnsIndexes[key] for key in checkboxes if key in columnsIndexes}
     data = []
     if file:
-        csv_file = csv.reader(file.stream.read().decode("UTF8").splitlines())
+        csv_file = csv.reader(csv_read.decode("UTF8").splitlines())
         next(csv_file, None)
         for row in csv_file:
             filtered_row = [row[i] for i in columns_choosed_indexes.values()]
