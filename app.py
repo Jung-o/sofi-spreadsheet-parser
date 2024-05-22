@@ -1,5 +1,5 @@
 import json
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect
 import csv
 
 app = Flask(__name__)
@@ -19,6 +19,8 @@ def hello_world():
 @app.route('/inventory', methods=['POST'])
 def upload_file():
     file = request.files['datafile']
+    if file.stream.read() == b'':
+        return redirect('/')
     checkboxes = ['code', 'name', 'wishlist', 'gen']
     checkboxes = checkboxes + request.form.getlist('checkboxes')
     with open('static/columnsIndexes.json', 'r') as f1:
